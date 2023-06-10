@@ -24,6 +24,20 @@ public class PatientServiceImpl implements PatientService {
     }
 
 
+    // ======= CREATE =========================================================
+
+    @Override
+    public Patient createPatient(Patient patientToAdd) {
+        logger.debug("##### Call to method --> {}", Thread.currentThread().getStackTrace()[1].getMethodName());
+
+        Patient addedPatient = patientRepository.save(patientToAdd);
+
+        logger.info("### Created new patient successfully");
+
+        return addedPatient;
+    }
+
+
     // ======= READ ALL =======================================================
 
     @Override
@@ -57,6 +71,26 @@ public class PatientServiceImpl implements PatientService {
         logger.info("### Retrieved patient successfully");
 
         return existingPatient;
+    }
+
+
+    // ======= UPDATE =========================================================
+
+    @Override
+    public Patient updatePatient(Integer id, Patient patientToUpdate) {
+        logger.debug("##### Call to method --> {}", Thread.currentThread().getStackTrace()[1].getMethodName());
+
+        // Checks if patient with this id already exists in db
+        patientRepository.findById(id).orElseThrow(() -> {
+            logger.error("# Failed to retrieve patient --> id={} is unknown", id);
+            throw new PatientNotFoundException("Patient not found");
+        });
+        patientToUpdate.setId(id);
+        Patient updatedPatient = patientRepository.save(patientToUpdate);
+
+        logger.info("### Updated patient successfully");
+
+        return updatedPatient;
     }
 
 }
