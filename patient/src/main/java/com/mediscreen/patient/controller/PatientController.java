@@ -77,4 +77,17 @@ public class PatientController {
         return new ResponseEntity<>(patientUpdated, HttpStatus.OK);
     }
 
+
+    // ========================================================================
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Patient> deletePatient(@PathVariable("id") Integer id) {
+        logger.debug("##### Call to request --> {}", Thread.currentThread().getStackTrace()[1].getMethodName());
+
+        patientService.deletePatient(id);
+        logger.info("### Patient deleted");
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
 }

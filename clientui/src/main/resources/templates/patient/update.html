@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html" lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>MediscreenUI - Update Patient</title>
+
+    <link rel="stylesheet" type="text/css" href="../../webjars/bootstrap/4.0.0-2/css/bootstrap.min.css" />
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          th:href="@{https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css}">-->
+</head>
+
+<body>
+<div class="container">
+
+    <div class="row"><h2>Update Patient</h2></div>
+
+    <div class="row">
+        <!-- Form to edit the values of Patient, there are 2 buttons: Update data and Cancel to the list Patient -->
+        <form action="#" th:action="@{/patient/update/{id}(id=${patient.id})}" th:object="${patient}" method="post" class="form-horizontal" style="width: 100%">
+            <!-- Last Name -->
+            <div class="form-group">
+                <label for="lastName" class="col-sm-2 control-label">Last Name</label>
+                <div class="col-sm-10">
+                    <input type="text" th:field="*{lastName}" id="lastName" placeholder="Your last name" class="col-4">
+                    <p class="text-danger" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></p>
+                </div>
+            </div>
+            <!-- First Name -->
+            <div class="form-group">
+                <label for="firstName" class="col-sm-2 control-label">First Name</label>
+                <div class="col-sm-10">
+                    <input type="text" th:field="*{firstName}" id="firstName" placeholder="Your first name" class="col-4">
+                    <p class="text-danger" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></p>
+                </div>
+            </div>
+            <!-- Date of birth -->
+            <div class="form-group">
+                <label for="birthDate" class="col-sm-2 control-label">Date of birth</label>
+                <div class="col-sm-10">
+                    <input type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" th:field="*{birthDate}" id="birthDate" placeholder="Your birth date" class="col-4">
+                    <p class="text-danger" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></p>
+                </div>
+            </div>
+            <!-- Gender -->
+            <div class="form-group">
+                <label for="birthDate" class="col-sm-2 control-label">Gender</label>
+                <div class="col-sm-10">
+                    <input type="radio" th:field="*{gender}" id="male" name="gender" value="M" class="col-4">
+                    <label for="male">Male</label>
+                    <input type="radio" th:field="*{gender}" id="female" name="gender" value="F" class="col-4">
+                    <label for="female">Female</label>
+                    <p class="text-danger" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></p>
+                </div>
+            </div>
+            <!-- Address -->
+            <div class="form-group">
+                <label for="address" class="col-sm-2 control-label">Address</label>
+                <div class="col-sm-10">
+                    <input type="text" th:field="*{address}" id="address" placeholder="Your address" class="col-4">
+                    <p class="text-danger" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></p>
+                </div>
+            </div>
+            <!-- Phone -->
+            <div class="form-group">
+                <label for="phoneNumber" class="col-sm-2 control-label">Phone</label>
+                <div class="col-sm-10">
+                    <input type="text" th:field="*{phoneNumber}" id="phoneNumber" placeholder="Your phone number" class="col-4">
+                    <p class="text-danger" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></p>
+                </div>
+            </div>
+            <!-- Buttons validate / cancel -->
+            <div class="form-group">
+                <div class="col-sm-12">
+                    <a class="btn btn-danger btn-sm" href="/patient/list">Cancel</a>
+                    <input class="btn btn-info btn-sm" type="submit" value="Update patient">
+                </div>
+            </div>
+
+
+        </form>
+
+    </div>
+
+</div>
+
+<!--<script type="text/javascript" src="webjars/bootstrap/4.0.0-2/js/bootstrap.min.js"></script>-->
+
+</body>
+</html>

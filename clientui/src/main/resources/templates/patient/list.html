@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html" lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>MediscreenUI - Patient List</title>
+
+    <link rel="stylesheet" type="text/css" href="../webjars/bootstrap/4.0.0-2/css/bootstrap.min.css" />
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          th:href="@{https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css}">-->
+</head>
+
+<body>
+<div class="container">
+
+    <div class="row"><h2>Patient List</h2></div>
+
+    <div class="row">
+        <p><a href="/patient/add" class="btn btn-info btn-sm">Add new patient</a></p>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <!--<th>Id</th>-->
+                    <th>Last name</th>
+                    <th>First name</th>
+                    <th>Date of birth</th>
+                    <th>Gender</th>
+                    <th>Address</th>
+                    <th>Phone</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Show all patients to the table, the actions column will have Edit & Delete buttons -->
+                <tr th:if="${patientsList.empty}">
+                    <td colspan="7">No patient yet</td>
+                </tr>
+                <tr th:each="patient : ${patientsList}">
+                    <!--<td th:text="${patient.id}"></td>-->
+                    <td th:text="${patient.lastName}"></td>
+                    <td th:text="${patient.firstName}"></td>
+                    <td th:text="${patient.birthDate}"></td>
+                    <td th:text="${patient.gender}"></td>
+                    <td th:text="${patient.address}"></td>
+                    <td th:text="${patient.phoneNumber}"></td>
+                    <td class="text-center">
+                        <!--<a th:href="@{/patient/get/{id}(id=${patient.id})}">Details</a>-->
+                        <a th:href="@{/patient/update/{id}(id=${patient.id})}" class="btn btn-info btn-sm">Edit</a>
+                        <a th:href="@{/patient/delete/{id}(id=${patient.id})}" class="btn btn-info btn-sm">Delete</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+<!--<script type="text/javascript" src="webjars/bootstrap/4.0.0-2/js/bootstrap.min.js"></script>-->
+
+</body>
+</html>

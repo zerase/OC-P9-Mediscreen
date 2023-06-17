@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PatientServiceImpl implements PatientService {
@@ -91,6 +92,23 @@ public class PatientServiceImpl implements PatientService {
         logger.info("### Updated patient successfully");
 
         return updatedPatient;
+    }
+
+
+    // ======= DELETE =========================================================
+
+    @Override
+    public void deletePatient(Integer id) {
+        logger.debug("##### Call to method --> {}", Thread.currentThread().getStackTrace()[1].getMethodName());
+
+        Optional<Patient> patientToDelete = patientRepository.findById(id);
+        if(patientToDelete.isPresent()) {
+            patientRepository.delete(patientToDelete.get());
+            logger.info("### Deleted patient successfully");
+        } else {
+            logger.error("# Failed to delete patient --> id={} is unknown", id);
+            throw new PatientNotFoundException("Patient not found");
+        }
     }
 
 }
