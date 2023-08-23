@@ -1,18 +1,19 @@
 package com.mediscreen.patient.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(HttpStatus.NOT_FOUND)
+/**
+ * Exception to be thrown when the application doesn't find a given patient in database.
+ */
 public class PatientNotFoundException extends RuntimeException {
 
-    private static final Logger logger = LoggerFactory.getLogger(PatientNotFoundException.class);
+    private static final long serialVersionUID = 1L;
 
+    /**
+     * Instantiates a new patient not found exception.
+     *
+     * @param message  the message that gives a description of the exception that was thrown
+     */
     public PatientNotFoundException(String message) {
         super(message);
-        logger.error("# Returned error --> {}", message);
     }
 
 }

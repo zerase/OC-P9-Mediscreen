@@ -12,81 +12,124 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
+/**
+ * Manages endpoints of the Patient API.
+ */
+//@CrossOrigin(origins = "http://localhost:8080")
 @RestController
-@RequestMapping("/patient/*")
+//@RequestMapping("/api/*")
 public class PatientController {
 
     private static final Logger logger = LoggerFactory.getLogger(PatientController.class);
 
+    /**
+     * A component that handles business logic operations for patients.
+     */
     private final PatientService patientService;
 
+    /**
+     * Instantiates a new patient controller.
+     *
+     * @param patientService  the service linked to patient business logic
+     */
     @Autowired
     public PatientController(PatientService patientService) {
         this.patientService = patientService;
     }
 
 
-    // ========================================================================
+    // === ADD PATIENT ========================================================
 
-    @PostMapping("/add")
+    /**
+     * Adds patient information to database.
+     *
+     * @param patientToAdd  the patient information to add to database
+     * @return              the newly created patient information and status of the request
+     */
+    @PostMapping("/patients")
     public ResponseEntity<Patient> addPatient(@Valid @RequestBody Patient patientToAdd) {
-        logger.debug("##### Call to request --> {}", Thread.currentThread().getStackTrace()[1].getMethodName());
+        logger.debug("### Request called --> POST /patients");
 
-        Patient patientAdded = patientService.createPatient(patientToAdd);
-        logger.info("### Added patient --> {}", patientAdded);
+        Patient addedPatient = patientService.createPatient(patientToAdd);
 
-        return new ResponseEntity<>(patientAdded, HttpStatus.CREATED);
+        logger.info("### Patient added --> {}", addedPatient);
+        return new ResponseEntity<>(addedPatient, HttpStatus.CREATED);
     }
 
+    // === GET ALL PATIENTS ===================================================
 
-    // ========================================================================
-
-    @GetMapping("/list")
+    /**
+     * Lists information of all patients in database.
+     *
+     * @return  the list of all patients with their information and status of the request
+     */
+    @GetMapping("/patients")
     public ResponseEntity<List<Patient>> getAllPatients() {
-        logger.debug("##### Call to request --> {}()", Thread.currentThread().getStackTrace()[1].getMethodName());
+        logger.debug("### Request called --> GET /patients");
 
-        List<Patient> listPatients = patientService.readAllPatients();
-        logger.info("### List of patients returned --> {}", listPatients.toString());
+        List<Patient> allPatientsList = patientService.readAllPatients();
 
-        return new ResponseEntity<>(listPatients, HttpStatus.OK);
+        if (allPatientsList.isEmpty()) {
+            logger.info("### Empty list of patients returned --> {}", allPatientsList);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        logger.info("### List of patients returned --> {}", allPatientsList);
+        return new ResponseEntity<>(allPatientsList, HttpStatus.OK);
     }
 
+    // === GET PATIENT ========================================================
 
-    // ========================================================================
+    /**
+     * Gets information of the patient with the given id.
+     *
+     * @param patientId  the id of the patient to retrieve information from database
+     * @return           the information of the patient with the given id and status of the request
+     */
+    @GetMapping("/patients/{id}")
+    public ResponseEntity<Patient> getPatient(@PathVariable("id") Integer patientId) {
+        logger.debug("### Request called --> GET /patients/{}", patientId);
 
-    @GetMapping("/get/{id}")
-    public ResponseEntity<Patient> getPatient(@PathVariable("id") Integer id) {
-        logger.debug("##### Call to request --> {}", Thread.currentThread().getStackTrace()[1].getMethodName());
+        Patient patient = patientService.readPatient(patientId);
 
-        Patient patient = patientService.readPatient(id);
         logger.info("### Patient returned --> {}", patient);
-
         return new ResponseEntity<>(patient, HttpStatus.OK);
     }
 
+    // === UPDATE PATIENT =====================================================
 
-    // ========================================================================
+    /**
+     * Updates information of the patient with the given id.
+     *
+     * @param patientId  the id of the patient to update
+     * @param patient    the patient whose information have to be updated in database
+     * @return           the updated information of the patient with the given id and status of the request
+     */
+    @PutMapping("/patients/{id}")
+    public ResponseEntity<Patient> updatePatient(@PathVariable("id") Integer patientId, @Valid @RequestBody Patient patient) {
+        logger.debug("### Request called --> PUT /patients/{id}");
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Patient> updatePatient(@PathVariable("id") Integer id, @Valid @RequestBody Patient patient) {
-        logger.debug("##### Call to request --> {}", Thread.currentThread().getStackTrace()[1].getMethodName());
+        Patient patientUpdated = patientService.updatePatient(patientId, patient);
 
-        Patient patientUpdated = patientService.updatePatient(id, patient);
         logger.info("### Updated patient returned --> {}", patientUpdated);
-
         return new ResponseEntity<>(patientUpdated, HttpStatus.OK);
     }
 
+    // === DELETE PATIENT =====================================================
 
-    // ========================================================================
+    /**
+     * Delete information of the patient with the given id.
+     *
+     * @param patientId  the id of the patient whose data is to be deleted from database
+     * @return           the status of the request
+     */
+    @DeleteMapping("/patients/{id}")
+    public ResponseEntity<Patient> deletePatient(@PathVariable("id") Integer patientId) {
+        logger.debug("### Request called --> DELETE /patients/{id}");
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Patient> deletePatient(@PathVariable("id") Integer id) {
-        logger.debug("##### Call to request --> {}", Thread.currentThread().getStackTrace()[1].getMethodName());
+        patientService.deletePatient(patientId);
 
-        patientService.deletePatient(id);
-        logger.info("### Patient deleted");
-
+        logger.info("### Patient with id={} deleted", patientId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
