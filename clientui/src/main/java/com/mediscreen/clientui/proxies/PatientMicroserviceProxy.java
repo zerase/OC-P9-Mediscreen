@@ -10,19 +10,19 @@ import java.util.List;
 @FeignClient(name = "patient-microservice", url = "localhost:8081")
 public interface PatientMicroserviceProxy {
 
-    @GetMapping("/patient/list")
+    @GetMapping("/patients")
     List<PatientBean> getAllPatients();
 
-    @GetMapping("/patient/get/{id}")
+    @GetMapping("/patients/{id}")
     PatientBean getPatient(@PathVariable("id") Integer id);
 
-    @PutMapping("/patient/update/{id}")
+    @PutMapping("/patients/{id}")
     PatientBean updatePatient(@PathVariable("id") Integer id, @Valid @RequestBody PatientBean patientBean);
 
-    @PostMapping("/patient/add")
+    @PostMapping("/patients")
     PatientBean addPatient(@Valid @RequestBody PatientBean patientBean);
 
-    @DeleteMapping("/patient/delete/{id}")
+    @DeleteMapping("/patients/{id}")
     void deletePatient(@PathVariable("id") Integer id);
 
 }

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0" />
+  <title>MediscreenUI - Patient History</title>
+
+  <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+  <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+</head>
+
+<body>
+
+<!-- Header with Navigation menu -->
+<div th:replace="fragments/header :: header"></div>
+
+<main>
+<div class="container">
+
+  <div class="row mt-3">
+    <p><a th:href="@{/patient/get/{id}(id=${patientId})}" class="btn btn-info btn-sm"> << Back to patient details</a></p>
+  </div>
+
+  <div class="row">
+    <div class="col-6 pl-0">
+      <h2>Patient History</h2>
+    </div>
+    <div class="col-6 pr-0 text-right">
+      <p class="text-right"><a th:href="@{/notes/add/{id}(id=*{patientId})}" class="btn btn-info btn-sm"> + Add new note</a></p>
+    </div>
+  </div>
+
+  <div class="row">
+
+    <p class="text-center" th:if="${notes.empty}">No note or recommendation yet for this patient.</p>
+
+    <ul class="list-group w-100 my-3" th:each="note : ${notes}">
+      <li class="list-group-item d-flex justify-content-between lh-condensed bg-light">
+
+        <div class="d-flex w-100 justify-content-between">
+          <p class="m-1">Created at : <span th:text="${note.dateOfCreation}" class="font-weight-light"></span></p>
+          <p class="m-1">Modified at : <span th:text="${note.dateOfModification}" class="font-weight-light"></span></p>
+          <div class="m-1">
+            <a th:href="@{/notes/update/{id}(id=${note.id})}" class="btn btn-info btn-sm">Edit</a>
+            <a th:href="@{/notes/delete/{id}/{patientId}(id=${note.id}, patientId=${patientId})}" class="btn btn-info btn-sm">Delete</a>
+          </div>
+        </div>
+      </li>
+      <li class="list-group-item">
+        <textarea th:text="${note.content}" class="form-control bg-white border-0" id="exampleFormControlTextarea1" rows="3" readonly disabled></textarea>
+      </li>
+    </ul>
+
+  </div>
+</div>
+
+</main>
+
+<!-- Footer -->
+<div th:replace="fragments/footer :: footer"></div>
+
+<script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+
+</body>
+</html>

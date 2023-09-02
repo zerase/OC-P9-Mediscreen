@@ -42,7 +42,7 @@ public class Patient {
 
     @NotBlank(message = "Gender is required.")
     @Size(max = 1, message = "Gender must be 1 character long")
-    @Pattern(regexp = "M|F", message = "Gender must be letter M or F.")
+    @Pattern(regexp = "^[M|F]$", message = "Gender must be letter M or F.")
     @Column(name = "gender", columnDefinition = "enum('F', 'M')", length = 1, nullable = false)
     private String gender;
 
