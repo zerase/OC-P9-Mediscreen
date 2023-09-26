@@ -76,6 +76,60 @@ public class AssessmentService {
         return assessmentDTO;
     }
 
+    /**
+     * Creates a list of objects that evaluates and determines the likelihood that a patient will develop diabetes.
+     *
+     * @param lastName  the lastName of the patients we are seeking to evaluate
+     * @return          the list of objects that represents the assessment of a patient probability of developing diabetes
+     */
+    public List<AssessmentDTO> assessDiabetesRiskLevelByLastName(String lastName) {
+        logger.debug("### Try to assess level of risk of patient with lastName={}", lastName);
+
+        List<AssessmentDTO> assessmentDTOList = new ArrayList<>();
+
+        List<PatientBean> patientsWithSameName = retrievePatientByLastName(lastName);
+
+        for (PatientBean patient : patientsWithSameName) {
+            PatientBean patientInfo = retrievePatientById(patient.getId());
+
+            Integer patientAge = calculateAgeFromDateOfBirth(patientInfo.getDateOfBirth());
+
+            List<NoteBean> patientNotes = retrieveNotesByPatientId(patient.getId());
+            Integer patientTriggers = countTriggerTermsPresentInList(patientNotes);
+
+            String diabetesRiskLevel = determineDiabetesRiskLevel(patientInfo.getGender(), patientAge, patientTriggers);
+
+            AssessmentDTO assessmentDTO = new AssessmentDTO(patientInfo, patientAge, diabetesRiskLevel);
+            assessmentDTOList.add(assessmentDTO);
+        }
+        logger.info("### Assessment returned --> {}", assessmentDTOList);
+        return assessmentDTOList;
+    }
+
+    // === RETRIEVE PATIENT BY LAST NAME ======================================
+
+    /**
+     * Retrieves information of patient with the given last name.
+     *
+     * @param lastName  the id of the patient whose information we wish to retrieve
+     * @return          the information of the patient with the given id
+     */
+    public List<PatientBean> retrievePatientByLastName(String lastName) {
+        logger.debug("### Try to retrieve patient with lastName={}", lastName);
+
+        List<PatientBean> patientToAssess;
+
+        patientToAssess = microservicePatientProxy.getAllPatients(lastName);
+
+        if(patientToAssess == null) {
+            logger.error("### Failed to retrieve patient with lastName={}", lastName);
+            throw new PatientNotFoundException("Patient not found or doesn't exist");
+        } else {
+            logger.info("### Retrieved patient with lastName={} successfully", lastName);
+            return patientToAssess;
+        }
+    }
+
     // === RETRIEVE PATIENT BY PATIENT ID =====================================
 
     /**
@@ -133,6 +187,12 @@ public class AssessmentService {
 
         try {
             patientNotes = microserviceNoteProxy.getAllNotesByPatientId(patientId);
+
+            if(patientNotes == null) {
+                logger.info("### Fetched no notes");
+                return new ArrayList<>();
+            }
+
         } catch (FeignException e) {
             logger.error("### Failed to retrieve notes of patient with id={}", patientId);
             throw new PatientNotFoundException("Patient not found with id=" + patientId);

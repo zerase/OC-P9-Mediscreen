@@ -8,12 +8,15 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
+/**
+ * Entity linked to the notes table of the database. Also contains the incoming data validation constraints.
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @ToString
-@Document(collection = "notes") // This maps entity class objects to JSON formatted documents
+@Document(collection = "notes") // Maps entity class object to JSON formatted documents
 public class Note {
 
     @Id
@@ -32,10 +35,19 @@ public class Note {
 
     // === Other constructor ==================================================
 
+    /**
+     * Instantiates a note.
+     *
+     * @param patientId           the patient id with which the note is associated
+     * @param dateOfCreation      the date the note was created
+     * @param dateOfModification  the date the change was made to the note
+     * @param content             the content of the note provided by the practitioner
+     */
     public Note(Integer patientId, LocalDateTime dateOfCreation, LocalDateTime dateOfModification, String content) {
         this.patientId = patientId;
         this.dateOfCreation = dateOfCreation;
         this.dateOfModification = dateOfModification;
         this.content = content;
     }
+
 }

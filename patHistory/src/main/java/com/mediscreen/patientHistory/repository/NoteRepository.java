@@ -20,4 +20,10 @@ public interface NoteRepository extends MongoRepository<Note, String> {
      */
     List<Note> findAllByPatientIdOrderByDateOfCreationDesc(Integer patientId);
 
+    /**
+     * Deletes the entities with the given id.
+     *
+     * @param patientId  the id of the patient whose list of notes must be deleted
+     */
+    void deleteAllByPatientId(Integer patientId);
 }

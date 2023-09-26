@@ -9,7 +9,7 @@ import lombok.*;
 @ToString
 public class AssessmentBean {
 
-    private PatientBean patientDTO;
+    private PatientBean patientBean;
     private int patientAge;
     private String diabetesRiskLevelAssessment;
 

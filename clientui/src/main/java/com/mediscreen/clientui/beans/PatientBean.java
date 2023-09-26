@@ -40,16 +40,4 @@ public class PatientBean {
     @Size(max = 15, message = "Phone should not exceed 15 characters.")
     private String phoneNumber;
 
-
-    // ==== Other constructor =================================================
-
-    public PatientBean(String lastName, String firstName, LocalDate dateOfBirth, String gender, String address, String phoneNumber) {
-        this.lastName = lastName;
-        this.firstName = firstName;
-        this.dateOfBirth = dateOfBirth;
-        this.gender = gender;
-        this.address = address;
-        this.phoneNumber = phoneNumber;
-    }
-
 }

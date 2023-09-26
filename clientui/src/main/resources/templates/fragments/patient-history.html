@@ -1,0 +1,35 @@
+<div th:fragment="history" xmlns:th="http://www.thymeleaf.org">
+
+<div class="row">
+  <div class="col-6 pl-0">
+    <h3>Patient History</h3>
+  </div>
+  <div class="col-6 pr-0 text-right">
+    <p class="text-right"><a th:href="@{/patients/{id}/notes/new(id=*{patientId})}" class="btn btn-info btn-sm"> + Add new note</a></p>
+  </div>
+</div>
+
+<div class="row">
+
+  <p class="text-center" th:if="${notes.empty}">No note or recommendation yet for this patient.</p>
+
+  <ul class="list-group w-100 my-3" th:each="note : ${notes}">
+    <li class="list-group-item d-flex justify-content-between lh-condensed bg-light">
+
+      <div class="d-flex w-100 justify-content-between">
+        <p class="m-1">Created at : <span class="font-weight-light">[[${note.dateOfCreation}]]</span></p>
+        <p class="m-1">Modified at : <span class="font-weight-light">[[${note.dateOfModification}]]</span></p>
+        <div class="m-1">
+          <a th:href="@{/notes/update/{id}(id=${note.id})}" class="btn btn-info btn-sm">Edit</a>
+          <a th:href="@{/notes/delete/{id}/{patientId}(id=${note.id}, patientId=${patientId})}" class="btn btn-info btn-sm">Delete</a>
+        </div>
+      </div>
+    </li>
+    <li class="list-group-item">
+      <textarea class="form-control bg-white border-0" id="exampleFormControlTextarea1" rows="3" readonly disabled>[[${note.content}]]</textarea>
+    </li>
+  </ul>
+
+</div>
+
+</div>

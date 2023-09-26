@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  mysqldb:
+    image: mysql:8
+    container_name: mysqldb
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootroot
+      MYSQL_DATABASE: p9_mediscreen_dev
+    volumes:
+      - ./mediscreen_patient_db:/var/lib/mysql
+      - ./dbscripts/mysql/mediscreendata.sql:/docker-entrypoint-initdb.d/0_init.sql
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./dbscripts/mongodb/init-notes.js:/docker-entrypoint-initdb.d/init-notes.js:ro
+      - ./mediscreen_note_db:/data/db/
+    restart: unless-stopped
+
+  patient-ms:
+    image: patient-ms
+    container_name: patient
+    ports:
+      - "8081:8081"
+    environment:
+      - spring.datasource.url=jdbc:mysql://mysqldb:3306/p9_mediscreen_dev
+    depends_on:
+      - mysqldb
+    volumes:
+      - /app/logs/patient
+    restart: on-failure
+
+  history-ms:
+    image: history-ms
+    container_name: history
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mongodb
+    restart: on-failure
+
+  assessment-ms:
+    image: assessment-ms
+    container_name: assessment
+    ports:
+      - "8083:8083"
+    depends_on:
+      - patient-ms
+      - history-ms
+    restart: on-failure
+
+  clientui:
+    image: clientui
+    container_name: clientui
+    ports:
+      - "8080:8080"
+    depends_on:
+      - patient-ms
+      - history-ms
+      - assessment-ms
+    restart: on-failure
+
+volumes:
+  mediscreen_patient_db:
+  mediscreen_note_db:

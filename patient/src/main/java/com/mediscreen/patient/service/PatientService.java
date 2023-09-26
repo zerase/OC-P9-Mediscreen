@@ -1,5 +1,6 @@
 package com.mediscreen.patient.service;
 
+import com.mediscreen.patient.exception.PatientAlreadyExistsException;
 import com.mediscreen.patient.exception.PatientNotFoundException;
 import com.mediscreen.patient.model.Patient;
 
@@ -15,8 +16,9 @@ public interface PatientService {
      *
      * @param patient  the patient to create
      * @return         the newly created patient
+     * @throws PatientAlreadyExistsException  if the patient with same data already exists in database
      */
-    Patient createPatient(Patient patient);
+    Patient createPatient(Patient patient) throws PatientAlreadyExistsException;
 
     /**
      * Retrieves all patients from database.
@@ -24,6 +26,13 @@ public interface PatientService {
      * @return  a list of all patients
      */
     List<Patient> readAllPatients();
+
+    /**
+     * Retrieves all patients from database which last name contains keyword.
+     * @param keyword  the string to be searched on
+     * @return         a list of all patients containing the same keyword
+     */
+    List<Patient> readAllPatientsByLastName(String keyword);
 
     /**
      * Retrieves a patient by his id from database.

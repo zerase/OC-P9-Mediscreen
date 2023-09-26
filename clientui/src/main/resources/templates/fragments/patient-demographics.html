@@ -1,0 +1,42 @@
+<div th:fragment="demographics" xmlns:th="http://www.thymeleaf.org">
+
+  <ul class="list-group w-100 my-3">
+    <li class="list-group-item d-flex justify-content-between lh-condensed bg-light">
+      <div class="d-flex w-100 justify-content-between">
+        <h3 class="m-1">Demographics information</h3>
+        <div class="m-1">
+          <a th:href="@{/patients/update/{id}(id=${patient.id})}" class="btn btn-info btn-sm">Edit</a>
+          <a th:href="@{/patients/delete/{id}(id=${patient.id})}" class="btn btn-info btn-sm">Delete</a>
+        </div>
+      </div>
+    </li>
+    <li class="list-group-item">
+      <dl>
+        <div class="row">
+          <div class="col-6">
+            <dt>Last name :</dt>
+            <dd>[[${patient.lastName}]]</dd>
+
+            <dt>First name :</dt>
+            <dd>[[${patient.firstName}]]</dd>
+          </div>
+
+          <div class="col-6">
+            <dt>Date of birth :</dt>
+            <dd>[[${patient.dateOfBirth}]]</dd>
+
+            <dt>Gender :</dt>
+            <dd>[[${patient.gender}]]</dd>
+          </div>
+        </div>
+
+        <dt>Address :</dt>
+        <dd>[[${patient.address}]]</dd>
+
+        <dt>Phone number :</dt>
+        <dd>[[${patient.phoneNumber}]]</dd>
+      </dl>
+    </li>
+  </ul>
+
+</div>

@@ -1,7 +1,8 @@
 package com.mediscreen.clientui.services;
 
 import com.mediscreen.clientui.beans.PatientBean;
-import com.mediscreen.clientui.proxies.PatientMicroserviceProxy;
+import com.mediscreen.clientui.proxies.NoteProxy;
+import com.mediscreen.clientui.proxies.PatientProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,65 +16,69 @@ public class PatientUiService {
 
     private static final Logger logger = LoggerFactory.getLogger(PatientUiService.class);
 
-    private PatientMicroserviceProxy patientProxy;
+    private final PatientProxy patientProxy;
+    private final NoteProxy noteProxy;
 
     @Autowired
-    public PatientUiService(PatientMicroserviceProxy patientProxy) {
+    public PatientUiService(PatientProxy patientProxy, NoteProxy noteProxy) {
         this.patientProxy = patientProxy;
+        this.noteProxy = noteProxy;
     }
 
 
-    // === RETRIEVE ALL PATIENTS ==============================================
-    public List<PatientBean> retrieveAllPatients() {
-        logger.debug("### Try to retrieve all patients");
+    // === FETCH ALL PATIENTS =================================================
+    public List<PatientBean> fetchAllPatients(String nameSearched) {
+        logger.debug("### Try to fetch all patients");
 
-        List<PatientBean> allPatients = patientProxy.getAllPatients();
+        List<PatientBean> allPatients = patientProxy.getAllPatients(nameSearched);
 
         if(allPatients == null) {
-            logger.info("### Retrieved no patients");
+            logger.info("### Fetched no patients");
             return new ArrayList<>();
         }
 
-        logger.info("### Retrieved all patients successfully");
+        logger.info("### All fetched patients --> {}", allPatients);
         return allPatients;
     }
 
-    // === RETRIEVE ONE PATIENT BY ID =========================================
-    public PatientBean retrievePatient(Integer id) {
-        logger.debug("### Try to retrieve patient with id={}", id);
+    // === FETCH ONE PATIENT ==================================================
+    public PatientBean fetchPatient(Integer id) {
+        logger.debug("### Try to fetch patient with id={}", id);
 
-        PatientBean patientBean = patientProxy.getPatient(id);
+        PatientBean patient = patientProxy.getPatientById(id);
 
-        logger.info("### Retrieved patient successfully");
-        return patientBean;
+        logger.info("### Fetched patient --> {}", patient);
+        return patient;
     }
 
     // === UPDATE PATIENT =====================================================
-    public PatientBean updatePatient(Integer id, PatientBean patientBean) {
+    public PatientBean updatePatient(Integer id, PatientBean patientToUpdate) {
         logger.debug("### Try to update patient with id={}", id);
 
-        PatientBean patientToUpdate = patientProxy.updatePatient(id, patientBean);
+        PatientBean updatedPatient = patientProxy.updatePatientById(id, patientToUpdate);
 
-        logger.info("### Update patient with id={} successfully", id);
-        return patientToUpdate;
+        logger.info("### Updated patient --> {}", updatedPatient);
+        return updatedPatient;
     }
 
     // === CREATE NEW PATIENT =================================================
-    public PatientBean createPatient(PatientBean patientBean) {
-        logger.debug("### Try to create new patient {}", patientBean);
+    public PatientBean createNewPatient(PatientBean patientToCreate) {
+        logger.debug("### Try to create new patient --> {}", patientToCreate);
 
-        PatientBean patientToCreate = patientProxy.addPatient(patientBean);
+        PatientBean createdPatient = patientProxy.addNewPatient(patientToCreate);
 
-        logger.info("### Created patient {} successfully", patientBean);
-        return patientToCreate;
+        logger.info("### Created new patient --> {}", createdPatient);
+        return createdPatient;
     }
 
     // === DELETE PATIENT =====================================================
     public void deletePatient(Integer id) {
         logger.debug("### Try to delete patient with id={}", id);
 
-        patientProxy.deletePatient(id);
-        logger.info("### Patient with id={} deleted successfully", id);
+        patientProxy.deletePatientById(id);
+        noteProxy.deleteAllNotesByPatientId(id);
+
+        logger.info("### Patient deleted");
     }
 
 }

@@ -66,12 +66,32 @@ public class AssessmentServiceTest {
 
         Throwable actualResult = catchThrowable(() -> serviceUnderTest.retrievePatientById(unknownPatientId));
 
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(actualResult).as("Thrown exception")
-                    .isInstanceOf(PatientNotFoundException.class)
-                    .hasMessageContaining("Patient not found");
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(actualResult).as("Thrown exception")
+                .isInstanceOf(PatientNotFoundException.class)
+                .hasMessageContaining("Patient not found"));
         verify(patientProxy).getPatientById(123);
+    }
+
+    // ========================================================================
+
+    @Test
+    void retrievePatientByLastName_shouldReturnPatientWithTheGivenLastNameSuccessfully() {
+        String lastNameSearched = "TestToto";
+        PatientBean expectedPatient1 = new PatientBean(5, "TestToto", "John", LocalDate.parse("1990-12-31"), "M", "1 Brookside St", "100-222-3333");
+        PatientBean expectedPatient2 = new PatientBean(6, "TestToto", "Jane", LocalDate.parse("1990-12-31"), "F", "1 Brookside St", "100-222-3333");
+        List<PatientBean> expectedPatientsList = Arrays.asList(expectedPatient1, expectedPatient2);
+        when(patientProxy.getAllPatients(anyString())).thenReturn(expectedPatientsList);
+
+        List<PatientBean> actualResult = serviceUnderTest.retrievePatientByLastName(lastNameSearched);
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(actualResult).as("Retrieved patients list").isNotNull();
+            softly.assertThat(actualResult.size()).as("Retrieved patients list size")
+                    .isEqualTo(expectedPatientsList.size());
+            softly.assertThat(actualResult.get(0).getLastName()).as("Retrieved one patient last name of list")
+                    .isEqualTo(lastNameSearched);
+        });
+        verify(patientProxy).getAllPatients(lastNameSearched);
     }
 
     // ========================================================================
@@ -118,11 +138,9 @@ public class AssessmentServiceTest {
 
         Throwable actualResult = catchThrowable(() -> serviceUnderTest.retrieveNotesByPatientId(unknownPatientId));
 
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(actualResult).as("Thrown exception")
-                    .isInstanceOf(PatientNotFoundException.class)
-                    .hasMessageContaining("Patient not found");
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(actualResult).as("Thrown exception")
+                .isInstanceOf(PatientNotFoundException.class)
+                .hasMessageContaining("Patient not found"));
         verify(noteProxy).getAllNotesByPatientId(123);
     }
 
@@ -137,11 +155,9 @@ public class AssessmentServiceTest {
 
         int actualResult = serviceUnderTest.countTriggerTermsPresentInList(allNotesOfPatient);
 
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(actualResult).as("Number of trigger terms")
-                    .isNotNull()
-                    .isEqualTo(5);
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(actualResult).as("Number of trigger terms")
+                .isNotNull()
+                .isEqualTo(5));
     }
 
     @Test
@@ -150,11 +166,9 @@ public class AssessmentServiceTest {
 
         int actualResult = serviceUnderTest.countTriggerTermsPresentInList(allNotesOfPatient);
 
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(actualResult).as("Number of trigger terms")
-                    .isNotNull()
-                    .isEqualTo(0);
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(actualResult).as("Number of trigger terms")
+                .isNotNull()
+                .isEqualTo(0));
     }
 
     // ========================================================================
@@ -167,11 +181,9 @@ public class AssessmentServiceTest {
 
         String actualResult = serviceUnderTest.determineDiabetesRiskLevel(gender, patientAge, inputTriggerTermCount);
 
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(actualResult).as("Diabetes Risk level")
-                    .isNotNull()
-                    .isEqualTo(expectedRiskLevelValue);
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(actualResult).as("Diabetes Risk level")
+                .isNotNull()
+                .isEqualTo(expectedRiskLevelValue));
     }
 
     @ParameterizedTest(name = "Case when TriggerTermCount={0} --> RiskLevel={1}")
@@ -182,11 +194,9 @@ public class AssessmentServiceTest {
 
         String actualResult = serviceUnderTest.determineDiabetesRiskLevel(gender, patientAge, inputTriggerTermCount);
 
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(actualResult).as("Diabetes Risk level")
-                    .isNotNull()
-                    .isEqualTo(expectedRiskLevelValue);
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(actualResult).as("Diabetes Risk level")
+                .isNotNull()
+                .isEqualTo(expectedRiskLevelValue));
     }
 
     @ParameterizedTest(name = "Case when TriggerTermCount={0} --> RiskLevel={1}")
@@ -197,11 +207,9 @@ public class AssessmentServiceTest {
 
         String actualResult = serviceUnderTest.determineDiabetesRiskLevel(gender, patientAge, inputTriggerTermCount);
 
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(actualResult).as("Diabetes Risk level")
-                    .isNotNull()
-                    .isEqualTo(expectedRiskLevelValue);
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(actualResult).as("Diabetes Risk level")
+                .isNotNull()
+                .isEqualTo(expectedRiskLevelValue));
     }
 
     @ParameterizedTest(name = "Case when TriggerTermCount={0} --> RiskLevel={1}")
@@ -212,11 +220,9 @@ public class AssessmentServiceTest {
 
         String actualResult = serviceUnderTest.determineDiabetesRiskLevel(gender, patientAge, inputTriggerTermCount);
 
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(actualResult).as("Diabetes Risk level")
-                    .isNotNull()
-                    .isEqualTo(expectedRiskLevelValue);
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(actualResult).as("Diabetes Risk level")
+                .isNotNull()
+                .isEqualTo(expectedRiskLevelValue));
     }
 
     // ========================================================================
@@ -235,7 +241,7 @@ public class AssessmentServiceTest {
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(actualResult).as("AssessmentDto").isNotNull();
-            softly.assertThat(actualResult.getPatientDTO()).as("Patient in AssessmentDto")
+            softly.assertThat(actualResult.getPatientBean()).as("Patient in AssessmentDto")
                     .isEqualTo(patientNone);
             softly.assertThat(actualResult.getPatientAge()).as("Age in AssessmentDto")
                     .isEqualTo(expectedAge);
@@ -261,7 +267,7 @@ public class AssessmentServiceTest {
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(actualResult).as("AssessmentDto").isNotNull();
-            softly.assertThat(actualResult.getPatientDTO()).as("Patient in AssessmentDto")
+            softly.assertThat(actualResult.getPatientBean()).as("Patient in AssessmentDto")
                     .isEqualTo(patientBorderline);
             softly.assertThat(actualResult.getPatientAge()).as("Age in AssessmentDto")
                     .isEqualTo(expectedAge);
@@ -287,7 +293,7 @@ public class AssessmentServiceTest {
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(actualResult).as("AssessmentDto").isNotNull();
-            softly.assertThat(actualResult.getPatientDTO()).as("Patient in AssessmentDto")
+            softly.assertThat(actualResult.getPatientBean()).as("Patient in AssessmentDto")
                     .isEqualTo(patientInDanger);
             softly.assertThat(actualResult.getPatientAge()).as("Age in AssessmentDto")
                     .isEqualTo(expectedAge);
@@ -315,7 +321,7 @@ public class AssessmentServiceTest {
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(actualResult).as("AssessmentDto").isNotNull();
-            softly.assertThat(actualResult.getPatientDTO()).as("Patient in AssessmentDto")
+            softly.assertThat(actualResult.getPatientBean()).as("Patient in AssessmentDto")
                     .isEqualTo(patientEarlyOnset);
             softly.assertThat(actualResult.getPatientAge()).as("Age in AssessmentDto")
                     .isEqualTo(expectedAge);

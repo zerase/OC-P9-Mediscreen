@@ -2,6 +2,13 @@ package com.mediscreen.patientHistory.controller;
 
 import com.mediscreen.patientHistory.model.Note;
 import com.mediscreen.patientHistory.service.NoteService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +28,7 @@ public class NoteController {
     private static final Logger logger = LoggerFactory.getLogger(NoteController.class);
 
     /**
-     * A component that handles business logic operations for notes related to patients.
+     * Component that handles business logic operations for notes related to patients.
      */
     private final NoteService noteService;
 
@@ -44,36 +51,22 @@ public class NoteController {
      * @param noteToAdd  the note related to a patient to add to database
      * @return           the newly created note and status of the request
      */
+    @Operation(
+            summary = "Create a new note",
+            description = "Create and save a new Note object. The response is a Note object with an automatically generated id, patient identifier, date of creation, date of modification, content of the note."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201"),
+            @ApiResponse(responseCode = "400", description = "Bad request - The query failed due to a validation error on an input.", content = {@Content(schema = @Schema())})
+    })
     @PostMapping("/patHistories")
-    public ResponseEntity<Note> addNote(@Valid @RequestBody Note noteToAdd) {
+    public ResponseEntity<Note> addNewNote(@Valid @RequestBody Note noteToAdd) {
         logger.debug("### Request called --> POST /patHistories");
 
         Note addedNote = noteService.createNote(noteToAdd);
 
-        logger.info("### Note added --> {}", addedNote);
+        logger.info("### New note successfully added");
         return new ResponseEntity<>(addedNote, HttpStatus.CREATED);
-    }
-
-    // === GET ALL NOTES OF ALL PATIENTS ======================================
-
-    /**
-     * Lists all patients notes in database.
-     *
-     * @return  the list of all notes of all patients and status of the request
-     */
-    @GetMapping("/patHistories")
-    public ResponseEntity<List<Note>> getAllNotes() {
-        logger.debug("### Request called --> GET /patHistories");
-
-        List<Note> allNotesList = noteService.readAllNotes();
-
-        if(allNotesList.isEmpty()) {
-            logger.info("Empty list of notes returned --> {}", allNotesList);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-
-        logger.info("### List of all notes returned --> {}", allNotesList);
-        return new ResponseEntity<>(allNotesList, HttpStatus.OK);
     }
 
     // === GET ALL NOTES OF ONE PATIENT BY HIS ID =============================
@@ -84,13 +77,26 @@ public class NoteController {
      * @param patientId  the id of the patient to retrieve the notes from database
      * @return           the list of all notes of the patient with the given id and status of the request
      */
-    @GetMapping("/patHistories/patientId/{id}")
-    public ResponseEntity<List<Note>> getAllNotesByPatientId(@PathVariable("id") Integer patientId) {
-        logger.debug("### Request called --> GET /patHistories/patientId/{}", patientId);
+    @Operation(summary = "Retrieve all notes related to a specific patient")
+    @Parameters({
+            @Parameter(name = "patientId")
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "204")
+    })
+    @GetMapping("/patHistories")
+    public ResponseEntity<List<Note>> getAllNotesByPatientId(@RequestParam(value = "patientId", required = true) Integer patientId) {
+        logger.debug("### Request called --> GET /patHistories?patientId={}", patientId);
 
         List<Note> patientNotes = noteService.readAllNotesByPatientId(patientId);
 
-        logger.info("### List of notes of patientId={} returned --> {}", patientId, patientNotes);
+        if(patientNotes.isEmpty()) {
+            logger.info("### Empty list of notes returned");
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        logger.info("### Retrieved list of notes successfully");
         return new ResponseEntity<>(patientNotes, HttpStatus.OK);
     }
 
@@ -102,14 +108,22 @@ public class NoteController {
      * @param noteId  the id of the note to retrieve from database
      * @return        the note with the given id and status of the request
      */
+    @Operation(summary = "Retrieve a note by id")
+    @Parameters({
+            @Parameter(name = "id", description = "Id of a specific note", required = true)
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "404"),
+    })
     @GetMapping("/patHistories/{id}")
     public ResponseEntity<Note> getNoteById(@PathVariable("id") String noteId) {
         logger.debug("### Request called --> GET patHistories/{}", noteId);
 
-        Note note = noteService.readNoteById(noteId);
+        Note retrievedNote = noteService.readNoteById(noteId);
 
-        logger.info("### Note returned --> {}", note);
-        return new ResponseEntity<>(note, HttpStatus.OK);
+        logger.info("### Note returned successfully");
+        return new ResponseEntity<>(retrievedNote, HttpStatus.OK);
     }
 
     // === UPDATE NOTE ========================================================
@@ -121,13 +135,22 @@ public class NoteController {
      * @param note    the note which content have to be updated in database
      * @return        the note with the given id updated and status of the request
      */
+    @Operation(summary = "Update an existing note by id")
+    @Parameters({
+            @Parameter(name = "id", description = "Id of a specific note", required = true)
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400"),
+            @ApiResponse(responseCode = "404")
+    })
     @PutMapping("/patHistories/{id}")
-    public ResponseEntity<Note> updateNote(@PathVariable("id") String noteId, @Valid @RequestBody Note note) {
-        logger.debug("### Request called --> PUT /patHistories/{id}");
+    public ResponseEntity<Note> updateNoteById(@PathVariable("id") String noteId, @Valid @RequestBody Note note) {
+        logger.debug("### Request called --> PUT /patHistories/{}", noteId);
 
         Note noteUpdated = noteService.updateNote(noteId, note);
 
-        logger.info("### Updated note returned --> {}", noteUpdated);
+        logger.info("### Note updated successfully");
         return new ResponseEntity<>(noteUpdated, HttpStatus.OK);
     }
 
@@ -139,14 +162,32 @@ public class NoteController {
      * @param noteId  the id of the note which data is to be deleted from database
      * @return        the status of the request
      */
+    @Operation(summary = "Delete an existing note by id")
+    @Parameters({
+            @Parameter(name = "id", description = "Id of a specific note", required = true)
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "404")
+    })
     @DeleteMapping("/patHistories/{id}")
-    public ResponseEntity<Note> deleteNote(@PathVariable("id") String noteId) {
-        logger.info("### Request called --> DELETE /patHistories/{id}");
+    public ResponseEntity<Note> deleteNoteById(@PathVariable("id") String noteId) {
+        logger.info("### Request called --> DELETE /patHistories/{}", noteId);
 
         noteService.deleteNote(noteId);
 
-        logger.info("### Deleted note with id={}", noteId);
+        logger.info("### Note deleted successfully");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    // === DELETE ALL NOTES OF ONE PATIENT BY HIS ID ==========================
+    @DeleteMapping("/patHistories")
+    public ResponseEntity<List<Note>> deleteAllNotesByPatientId(@RequestParam(value = "patientId", required = true) Integer patientId) {
+        logger.debug("### Request called --> DELETE /patHistories?patientId={}", patientId);
+
+        noteService.deleteNotesByPatientId(patientId);
+
+        logger.info("### Notes deleted successfully");
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

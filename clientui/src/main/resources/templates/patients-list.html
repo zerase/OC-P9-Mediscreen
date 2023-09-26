@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+  <title>MediscreenUI - Patients List</title>
+
+  <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+  <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+</head>
+
+<body>
+
+<!-- Header with Navigation menu -->
+<div th:replace="fragments/header :: header"></div>
+
+<!-- Main content -->
+<main>
+  <div class="container">
+
+    <!-- Alert message -->
+    <div th:if="${msgAlert != null}" class="alert alert-success alert-dismissible fade show text-center mt-3" role="alert">
+      [[${msgAlert}]]
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
+    <div class="row mt-3">
+      <h2 class="col-6">Patients list</h2>
+      <p class="col-6 text-right"><a th:href="@{/patients/new}" class="btn btn-info btn-sm"> + Add new patient</a></p>
+    </div>
+
+    <div th:if="${patientsList.empty}">
+      <p>No patient found.</p>
+    </div>
+    <div th:unless="${patientsList.empty}">
+      <!-- Show all patients to the table -->
+      <table class="table table-hover table-responsive-x1">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Last name</th>
+            <th scope="col">First name</th>
+            <th scope="col" class="text-center">Date of birth</th>
+            <th scope="col" class="text-center">Gender</th>
+            <th scope="col" class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="patient : ${patientsList}">
+            <th scope="row">[[${patient.id}]]</th>
+            <td>[[${patient.lastName}]]</td>
+            <td>[[${patient.firstName}]]</td>
+            <td class="text-center">[[${patient.dateOfBirth}]]</td>
+            <td class="text-center">[[${patient.gender}]]</td>
+            <td class="text-center">
+              <a th:href="@{/patients/details/{id}(id=${patient.id})}" class="btn btn-info btn-sm m-1">See Details</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<!-- Footer -->
+<div th:replace="fragments/footer :: footer"></div>
+
+<script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+
+</body>
+</html>

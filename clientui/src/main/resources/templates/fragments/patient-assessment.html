@@ -1,0 +1,21 @@
+<div th:fragment="assessment" xmlns:th="http://www.thymeleaf.org">
+
+<ul class="list-group w-100 my-3">
+  <li class="list-group-item d-flex justify-content-between lh-condensed bg-light">
+
+    <div class="d-flex w-100 justify-content-between">
+      <h3 class="m-1">Diabetes assessment</h3>
+    </div>
+  </li>
+  <li class="list-group-item">
+    <dl>
+      <dt>Age :</dt>
+      <dd>[[${assessment.patientAge}]]</dd>
+
+      <dt>Diabetes risk level :</dt>
+      <dd>[[${assessment.diabetesRiskLevelAssessment}]]</dd>
+    </dl>
+  </li>
+</ul>
+
+</div>

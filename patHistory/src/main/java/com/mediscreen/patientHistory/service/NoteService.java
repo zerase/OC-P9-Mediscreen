@@ -6,7 +6,7 @@ import com.mediscreen.patientHistory.model.Note;
 import java.util.List;
 
 /**
- * Manages CRUD operations of the business service layer related to notes of the patients.
+ * Manages business service layer CRUD operations related to patient notes.
  */
 public interface NoteService {
 
@@ -19,14 +19,7 @@ public interface NoteService {
     Note createNote(Note note);
 
     /**
-     * Retrieves all notes of all patients from database.
-     *
-     * @return  a list of notes of all patients
-     */
-    List<Note> readAllNotes();
-
-    /**
-     * Retrieves all notes of a patient by his id from database.
+     * Retrieves all notes relating to a specific patient from database.
      *
      * @param patientId  the id of the patient to retrieve notes list
      * @return           a list of notes related to the given patientId
@@ -60,4 +53,10 @@ public interface NoteService {
      */
     void deleteNote(String id) throws DataNotFoundException;
 
+    /**
+     * Deletes all notes related to a specific patient by its id.
+     *
+     * @param patientId  the id of patient to delete notes list
+     */
+    void deleteNotesByPatientId(Integer patientId);
 }

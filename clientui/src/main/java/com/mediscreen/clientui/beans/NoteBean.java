@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-public class NoteDto {
+public class NoteBean {
 
     private String id;
 
@@ -23,7 +23,7 @@ public class NoteDto {
     @DateTimeFormat(pattern = "yyyy-MM-dd hh:mm")
     private LocalDateTime dateOfModification;
 
-    @NotBlank(message = "Note or recommendation is required.")
+    @NotBlank(message = "Note is required.")
     private String content;
 
 }

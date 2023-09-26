@@ -1,6 +1,6 @@
 package com.mediscreen.clientui.services;
 
-import com.mediscreen.clientui.beans.NoteDto;
+import com.mediscreen.clientui.beans.NoteBean;
 import com.mediscreen.clientui.proxies.NoteProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,70 +24,56 @@ public class NoteUiService {
 
 
     // === CREATE NEW NOTE ====================================================
-    public NoteDto createNote(NoteDto note) {
-        logger.debug("### Try to create new note {}", note);
+    public NoteBean createNewNote(NoteBean noteToCreate) {
+        logger.debug("### Try to create new note --> {}", noteToCreate);
 
-        NoteDto noteToCreate = noteProxy.addNote(note);
+        NoteBean createdNote = noteProxy.addNewNote(noteToCreate);
 
-        logger.info("### Created note {} successfully", note);
-        return noteToCreate;
+        logger.info("### Created new note --> {}", createdNote);
+        return createdNote;
     }
 
-    // === RETRIEVE ALL NOTES OF ALL PATIENTS =================================
-    public List<NoteDto> retrieveAllNotes() {
-        logger.debug("### Try to retrieve all notes");
+    // === FETCH ALL NOTES OF ONE PATIENT =====================================
+    public List<NoteBean> fetchAllNotesOfPatient(Integer patientId) {
+        logger.debug("### Try to fetch all notes of patientId={}", patientId);
 
-        List<NoteDto> allNotesOfAllPatients = noteProxy.getAllNotes();
-
-        if(allNotesOfAllPatients == null) {
-            logger.info("### Retrieved no notes");
-            return new ArrayList<>();
-        }
-
-        logger.info("### Retrieved all notes of all patients successfully");
-        return allNotesOfAllPatients;
-    }
-
-    // === RETRIEVE ALL NOTES OF ONE PATIENT ==================================
-    public List<NoteDto> retrieveAllNotesOfPatient(Integer patientId) {
-        logger.debug("### Try to retrieve all notes of patientId={}", patientId);
-
-        List<NoteDto> allNotesOfPatient = noteProxy.getAllNotesByPatientId(patientId);
+        List<NoteBean> allNotesOfPatient = noteProxy.getAllNotesByPatientId(patientId);
 
         if(allNotesOfPatient == null) {
-            logger.info("### Retrieved no notes");
+            logger.info("### Fetched no notes");
             return new ArrayList<>();
         }
 
-        logger.info("### Retrieved all notes of patient successfully");
+        logger.info("### All fetched notes of patient --> {}", allNotesOfPatient);
         return allNotesOfPatient;
     }
 
-    // === RETRIEVE NOTE BY ITS ID ============================================
-    public NoteDto retrieveNoteById(String noteId) {
-        logger.debug("### Try to retrieve note with id={}", noteId);
+    // === FETCH ONE NOTE =====================================================
+    public NoteBean fetchNoteById(String noteId) {
+        logger.debug("### Try to fetch note with id={}", noteId);
 
-        NoteDto note = noteProxy.getNoteById(noteId);
+        NoteBean note = noteProxy.getNoteById(noteId);
 
-        logger.info("### Retrieved note successfully");
+        logger.info("### Fetched note --> {}", note);
         return note;
     }
 
     // === UPDATE NOTE ========================================================
-    public NoteDto updateNote(String noteId, NoteDto note) {
+    public NoteBean updateNote(String noteId, NoteBean noteToUpdate) {
         logger.debug("### Try to update note with id={}", noteId);
 
-        NoteDto noteToUpdate = noteProxy.updateNote(noteId, note);
+        NoteBean updatedNote = noteProxy.updateNoteById(noteId, noteToUpdate);
 
-        logger.info("### Update note successfully");
-        return noteToUpdate;
+        logger.info("### Updated note --> {}", updatedNote);
+        return updatedNote;
     }
 
     // === DELETE NOTE ========================================================
     public void deleteNote(String noteId) {
         logger.debug("### Try to delete note with id={}", noteId);
 
-        noteProxy.deleteNote(noteId);
-        logger.info("### Note deleted successfully");
+        noteProxy.deleteNoteById(noteId);
+
+        logger.info("### Note deleted");
     }
 }

@@ -1,6 +1,7 @@
 package com.mediscreen.patient.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mediscreen.patient.exception.PatientAlreadyExistsException;
 import com.mediscreen.patient.exception.PatientNotFoundException;
 import com.mediscreen.patient.model.Patient;
 import com.mediscreen.patient.service.PatientService;
@@ -48,9 +49,9 @@ public class PatientControllerTest {
 
     // === ADD PATIENT ========================================================
     @Test
-    void addPatient_shouldReturnAddedPatientWithStatusCreated() throws Exception {
-        when(patientService.createPatient(any(Patient.class))).thenReturn(patient1);
+    void addNewPatient_shouldReturnHttpStatus201Created_whenRequestIsSuccessful() throws Exception {
         Patient patientToAdd = new Patient("TestNone", "Test", LocalDate.parse("1966-12-31"), "F", "1 Brookside St", "100-222-3333");
+        when(patientService.createPatient(any(Patient.class))).thenReturn(patient1);
 
         mockMvc.perform(post("/patients").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(patientToAdd)))
@@ -60,19 +61,39 @@ public class PatientControllerTest {
         verify(patientService).createPatient(any(Patient.class));
     }
 
-    // === GET ALL PATIENTS ===================================================
     @Test
-    void getAllPatients_shouldReturnHttpStatus204NoContent_whenListOfAllPatientsIsEmpty() throws Exception {
-        when(patientService.readAllPatients()).thenReturn(new ArrayList<>());
+    void addNewPatient_shouldReturnHttpStatus400BadRequest_whenRequestFailedWithValidationErrors() throws Exception {
+        Patient patientToAdd = new Patient(null, null, null, null, "", "");
 
-        mockMvc.perform(get("/patients")).andDo(print())
-                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/patients").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(patientToAdd)))
+                .andExpectAll(
+                        status().isBadRequest(),
+                        content().contentType(MediaType.APPLICATION_JSON),
+                        content().string(containsString("is required"))
+                ).andDo(print());
 
-        verify(patientService).readAllPatients();
+        verify(patientService, times(0)).createPatient(any(Patient.class));
     }
 
     @Test
-    void getAllPatients_shouldReturnHttpStatus200Ok_whenListOfAllPatientsHasData() throws Exception {
+    void addNewPatient_shouldReturnHttpStatus409Conflict_whenRequestFailed() throws Exception {
+        Patient patientToAdd = new Patient("TestNone", "Test", LocalDate.parse("1966-12-31"), "F", "1 Brookside St", "100-222-3333");
+        when(patientService.createPatient(any(Patient.class))).thenThrow(PatientAlreadyExistsException.class);
+
+        mockMvc.perform(post("/patients").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(patientToAdd)))
+                .andExpectAll(
+                        status().isConflict(),
+                        content().contentType(MediaType.APPLICATION_JSON)
+                ).andDo(print());
+
+        verify(patientService).createPatient(any(Patient.class));
+    }
+
+    // === GET ALL PATIENTS ===================================================
+    @Test
+    void getAllPatients_shouldReturnHttpStatus200Ok_whenRequestIsSuccessfulWithListOfAllPatientsContainingData() throws Exception {
         when(patientService.readAllPatients()).thenReturn(expectedPatientsList);
 
         mockMvc.perform(get("/patients")).andDo(print())
@@ -95,7 +116,38 @@ public class PatientControllerTest {
     }
 
     @Test
-    void getAllPatients_shouldReturnHttpStatus500InternalServerError_whenListOfAllPatientsIsNull() throws Exception {
+    void getAllPatients_shouldReturnHttpStatus200Ok_whenRequestIsSuccessfulWithRequestParameterContainingData() throws Exception {
+        Patient patientA = new Patient(5, "Doe", "John", LocalDate.parse("1990-12-31"), "M", "", "");
+        Patient patientB = new Patient(6, "Doe", "Jane", LocalDate.parse("1990-12-31"), "F", "", "");
+        List<Patient> expectedPatientsListWithSameName = Arrays.asList(patientA, patientB);
+        when(patientService.readAllPatientsByLastName(anyString())).thenReturn(expectedPatientsListWithSameName);
+
+        mockMvc.perform(get("/patients?lastName=Doe")).andDo(print())
+                .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.APPLICATION_JSON),
+                        jsonPath("$", hasSize(2)),
+                        jsonPath("$[0].lastName", is(patientA.getLastName())),
+                        jsonPath("$[0].firstName", is(patientA.getFirstName())),
+                        jsonPath("$[1].lastName", is(patientB.getLastName())),
+                        jsonPath("$[1].firstName", is(patientB.getFirstName()))
+                );
+
+        verify(patientService).readAllPatientsByLastName(anyString());
+    }
+
+    @Test
+    void getAllPatients_shouldReturnHttpStatus204NoContent_whenRequestIsSuccessfulWithListOfAllPatientsEmpty() throws Exception {
+        when(patientService.readAllPatients()).thenReturn(new ArrayList<>());
+
+        mockMvc.perform(get("/patients")).andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(patientService).readAllPatients();
+    }
+
+    @Test
+    void getAllPatients_shouldReturnHttpStatus500InternalServerError_whenRequestFailedWithListOfAllPatientsNull() throws Exception {
         when(patientService.readAllPatients()).thenReturn(null);
 
         mockMvc.perform(get("/patients")).andDo(print())
@@ -109,9 +161,9 @@ public class PatientControllerTest {
 
     // === GET PATIENT ========================================================
     @Test
-    void getPatient_shouldReturnHttpStatus200Ok_whenGivenIdExists() throws Exception {
+    void getPatientById_shouldReturnHttpStatus200Ok_whenRequestIsSuccessful() throws Exception {
         int patientId = 1;
-        when(patientService.readPatient(any(Integer.class))).thenReturn(patient1);
+        when(patientService.readPatient(anyInt())).thenReturn(patient1);
 
         mockMvc.perform(get("/patients/{id}", patientId)).andDo(print())
                 .andExpectAll(
@@ -130,9 +182,20 @@ public class PatientControllerTest {
     }
 
     @Test
-    void getPatient_shouldReturnHttpStatus404NotFound_whenGivenIdIsUnknown() throws Exception {
+    void getPatientById_shouldReturnHttpStatus400BadRequest_whenRequestFailedWithWrongTypeOfGivenId() throws Exception {
+        mockMvc.perform(get("/patients/abc")).andDo(print())
+                .andExpectAll(
+                        status().isBadRequest(),
+                        content().contentType(MediaType.APPLICATION_JSON)
+                );
+
+        verify(patientService, times(0)).readPatient(anyInt());
+    }
+
+    @Test
+    void getPatientById_shouldReturnHttpStatus404NotFound_whenRequestFailedWithInvalidGivenId() throws Exception {
         int patientId = 0;
-        when(patientService.readPatient(any(Integer.class))).thenThrow(PatientNotFoundException.class);
+        when(patientService.readPatient(anyInt())).thenThrow(PatientNotFoundException.class);
 
         mockMvc.perform(get("/patients/{id}", patientId)).andDo(print())
                 .andExpectAll(
@@ -143,23 +206,12 @@ public class PatientControllerTest {
         verify(patientService).readPatient(patientId);
     }
 
-    @Test
-    void getPatient_shouldReturnHttpStatus400BadRequest_whenGivenIdIsInvalid() throws Exception {
-        mockMvc.perform(get("/patients/abc")).andDo(print())
-                .andExpectAll(
-                        status().isBadRequest(),
-                        content().contentType(MediaType.APPLICATION_JSON)
-                );
-
-        verify(patientService, times(0)).readPatient(anyInt());
-    }
-
     // === UPDATE PATIENT =====================================================
     @Test
-    void updatePatient_shouldReturnHttpStatus200Ok_whenGivenIdExists() throws Exception {
+    void updatePatientById_shouldReturnHttpStatus200Ok_whenRequestIsSuccessful() throws Exception {
         int patientId = 1;
         Patient updatedPatient = new Patient(1, "TestNone Updated", "Test Updated", LocalDate.parse("1950-12-31"), "M", "1 Brookside St Updated", "111-222-3333");
-        when(patientService.updatePatient(any(Integer.class), any(Patient.class))).thenReturn(updatedPatient);
+        when(patientService.updatePatient(anyInt(), any(Patient.class))).thenReturn(updatedPatient);
 
         mockMvc.perform(put("/patients/{id}", patientId).contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatedPatient)))
@@ -178,9 +230,41 @@ public class PatientControllerTest {
         verify(patientService).updatePatient(anyInt(), any(Patient.class));
     }
 
+    @Test
+    void updatePatientById_shouldReturnHttpStatus400BadRequest_whenRequestFailedWithValidationErrors() throws Exception {
+        int patientId = 1;
+        Patient updatedPatient = new Patient(1, null, null, null, null, "", "");
+
+        mockMvc.perform(put("/patients/{id}", patientId).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatedPatient)))
+                .andExpectAll(
+                        status().isBadRequest(),
+                        content().contentType(MediaType.APPLICATION_JSON),
+                        content().string(containsString("is required"))
+                ).andDo(print());
+
+        verify(patientService, times(0)).updatePatient(anyInt(), any(Patient.class));
+    }
+
+    @Test
+    void updatePatientById_shouldReturnHttpStatus404NotFound_whenRequestFailedWithInvalidGivenId() throws Exception {
+        int patientId = 0;
+        Patient updatedPatient = new Patient(0, "TestNone Updated", "Test Updated", LocalDate.parse("1950-12-31"), "M", "1 Brookside St Updated", "111-222-3333");
+        when(patientService.updatePatient(anyInt(), any(Patient.class))).thenThrow(PatientNotFoundException.class);
+
+        mockMvc.perform(put("/patients/{id}", patientId).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatedPatient)))
+                .andExpectAll(
+                        status().isNotFound(),
+                        content().contentType(MediaType.APPLICATION_JSON)
+                ).andDo(print());
+
+        verify(patientService).updatePatient(anyInt(), any(Patient.class));
+    }
+
     // === DELETE PATIENT =====================================================
     @Test
-    void deletePatient_shouldReturnHttpStatus204NoContent_whenGivenIdExists() throws Exception {
+    void deletePatientById_shouldReturnHttpStatus204NoContent_whenRequestIsSuccessful() throws Exception {
         int patientId = 1;
         doNothing().when(patientService).deletePatient(anyInt());
 
@@ -188,7 +272,19 @@ public class PatientControllerTest {
                 .andExpect(status().isNoContent())
                 .andDo(print());
 
-        verify(patientService).deletePatient(1);
+        verify(patientService).deletePatient(patientId);
+    }
+
+    @Test
+    void deletePatientById_shouldReturnHttpStatus404NotFound_whenRequestFailed() throws Exception {
+        int patientId = 0;
+        doThrow(PatientNotFoundException.class).when(patientService).deletePatient(anyInt());
+
+        mockMvc.perform(delete("/patients/{id}", patientId))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+
+        verify(patientService).deletePatient(patientId);
     }
 
 }

@@ -16,16 +16,17 @@ public enum DiabetesTerminology {
 
     // === French terms =======================================================
     HEMOGLOBINE_A1C("Hémoglobine A1C"),
-    MICROALBUMINE("Microalbumine"),
+    //MICROALBUMINE("Microalbumine"), // this one duplicates the other english term
     TAILLE("Taille"),
     POIDS("Poids"),
-    FUMEUR("Fumeur"),
-    ANORMAL("Anormal"),
+    FUMEUR("Fume"), // should work with the following trigger terms : "fumer", "fumeur", "fumeuse"
+    ANORMAL("Anorma"), // should work with the following trigger terms : "anormal", "anormale", "anormales", "anormaux"
     FR_CHOLESTEROL("Cholestérol"),
     VERTIGE("Vertige"),
     RECHUTE("Rechute"),
     FR_REACTION("Réaction"),
     ANTICORPS("Anticorps");
+
 
     // ========================================================================
 

@@ -3,6 +3,7 @@ package com.mediscreen.patientHistory.service;
 import com.mediscreen.patientHistory.exception.DataNotFoundException;
 import com.mediscreen.patientHistory.model.Note;
 import com.mediscreen.patientHistory.repository.NoteRepository;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,147 +11,172 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests that the methods used by the business service layer of the API work as expected.
+ */
 @ExtendWith(MockitoExtension.class)
 public class NoteServiceImplTest {
 
     @InjectMocks
-    private NoteServiceImpl noteServiceUnderTest;
+    private NoteServiceImpl serviceUnderTest;
     @Mock
     private NoteRepository noteRepository;
 
+    private final LocalDateTime creationDate = LocalDateTime.of(2022, 12, 31, 8, 20);
+    private final LocalDateTime modificationDate = LocalDateTime.of(2022, 12, 31, 8, 20);
+    private final Note note1 = new Note("generatedId1", 1, creationDate, modificationDate, "Recommendation made to patient 1");
+    private final Note note2 = new Note("generatedId2", 2, creationDate, modificationDate, "Recommendation A made to patient 2");
+    private final Note note3 = new Note("generatedId3", 2, creationDate, modificationDate, "Recommendation B made to patient 2");
 
+
+    // === TEST CREATE NOTE OPERATION =========================================
     @Test
-    public void readAllNotes_shouldReturnAllNotesFromDatabase() {
-        // GIVEN
-        String generatedIdByDatabase1 = "IdOfNote1", generatedIdByDatabase2 = "IdOfNote2";
-        Integer patientId1 = 1, patientId2 = 2;
-        LocalDateTime noteCreatedDate1 = LocalDateTime.of(2020, 12, 25, 8,20),
-                noteCreatedDate2 = LocalDateTime.of(2020, 12, 31, 8, 20);
-        LocalDateTime noteUpdatedDate1 = LocalDateTime.of(2020, 12, 25, 8,20),
-                noteUpdatedDate2 = LocalDateTime.of(2020, 12, 31, 8, 20);
-        String noteContent1 = "Content of the note 1", noteContent2 = "Content of the note 2";
+    void createNote_shouldReturnCreatedNoteCorrectly() {
+        Note noteToSave = new Note(1, creationDate, modificationDate, "Recommendation made to patient 1");
+        when(noteRepository.insert(any(Note.class))).thenReturn(note1);
 
-        Note mockNoteInDatabase1 = new Note(generatedIdByDatabase1, patientId1, noteCreatedDate1, noteUpdatedDate1, noteContent1);
-        Note mockNoteInDatabase2 = new Note(generatedIdByDatabase2, patientId2, noteCreatedDate2, noteUpdatedDate2, noteContent2);
-        List<Note> expectedAllNotesList = Arrays.asList(mockNoteInDatabase1, mockNoteInDatabase2);
-        Integer expectedListSize = expectedAllNotesList.size();
+        Note result = serviceUnderTest.createNote(noteToSave);
 
-        when(noteRepository.findAll()).thenReturn(expectedAllNotesList);
-
-        // WHEN
-        List<Note> allNotesListResult = noteServiceUnderTest.readAllNotes();
-
-        // THEN
-        assertThat(allNotesListResult).isNotNull();
-        assertThat(allNotesListResult.size()).isEqualTo(expectedListSize);
-        verify(noteRepository).findAll();
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).as("Note saved in database")
+                .isNotNull()
+                .usingRecursiveComparison().isEqualTo(note1));
+        verify(noteRepository).insert(noteToSave);
     }
 
-
+    // === TEST READ ALL BY PATIENT ID OPERATION ==============================
     @Test
-    public void readAllNotesOfOnePatient_shouldReturnAllNotesOfOnePatientFromDatabase() {
-        // GIVEN
-        String generatedIdByDatabase1 = "IdOfNote1", generatedIdByDatabase2 = "IdOfNote2";
-        Integer patientId = 1;
-        LocalDateTime noteCreatedDate1 = LocalDateTime.of(2020, 12, 25, 8, 20),
-                noteCreatedDate2 = LocalDateTime.of(2020, 12, 31, 8, 20);
-        LocalDateTime noteUpdatedDate1 = LocalDateTime.of(2020, 12, 25, 8, 20),
-                noteUpdatedDate2 = LocalDateTime.of(2020, 12, 31, 8, 20);
-        String noteContent1 = "Content of the note 1", noteContent2 = "Content of the note 2";
+    void readAllNotesByPatientId_shouldReturnEmptyList_whenDatabaseDoesNotFindDataWithGivenPatientId() {
+        Integer patientId = 2;
+        when(noteRepository.findAllByPatientIdOrderByDateOfCreationDesc(anyInt())).thenReturn(new ArrayList<>());
 
-        Note mockNoteInDatabase1 = new Note(generatedIdByDatabase1, patientId, noteCreatedDate1, noteUpdatedDate1, noteContent1);
-        Note mockNoteInDatabase2 = new Note(generatedIdByDatabase2, patientId, noteCreatedDate2, noteUpdatedDate2, noteContent2);
-        List<Note> expectedListOfAllNotesOfPatient = Arrays.asList(mockNoteInDatabase1, mockNoteInDatabase2);
-        Integer expectedListSize = expectedListOfAllNotesOfPatient.size();
+        List<Note> result = serviceUnderTest.readAllNotesByPatientId(patientId);
 
-        when(noteRepository.findAllByPatientIdOrderByDateOfCreationDesc(any(Integer.class))).thenReturn(expectedListOfAllNotesOfPatient);
-
-        // WHEN
-        List<Note> listOfAllNotesOfPatientResult = noteServiceUnderTest.readAllNotesByPatientId(patientId);
-
-        // THEN
-        assertThat(listOfAllNotesOfPatientResult).isNotNull();
-        assertThat(listOfAllNotesOfPatientResult.size()).isEqualTo(expectedListSize);
-        assertThat(listOfAllNotesOfPatientResult).usingRecursiveComparison().isEqualTo(expectedListOfAllNotesOfPatient);
-        verify(noteRepository).findAllByPatientIdOrderByDateOfCreationDesc(any(Integer.class));
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).as("Notes found from database")
+                .isNotNull()
+                .isEmpty());
+        verify(noteRepository).findAllByPatientIdOrderByDateOfCreationDesc(patientId);
     }
 
-
     @Test
-    public void readNoteById_shouldReturnNoteWithTheGivenIdFromDatabase() {
-        // GIVEN
-        String generatedIdByDatabase = "IdOfTheNote";
-        Integer patientId = 1;
-        LocalDateTime noteCreatedDate = LocalDateTime.of(2020, 12, 31, 8, 20);
-        LocalDateTime noteUpdatedDate = LocalDateTime.of(2020, 12, 31, 8, 20);
-        String noteContent = "Content of the note";
+    void readAllNotesByPatientId_shouldReturnListOfNotesWithSamePatientId_whenDatabaseFindDataWithGivenPatientId() {
+        Integer patientId = 2;
+        List<Note> expectedNotesList = Arrays.asList(note2, note3);
+        when(noteRepository.findAllByPatientIdOrderByDateOfCreationDesc(anyInt())).thenReturn(expectedNotesList);
 
-        Note mockNoteInDatabase = new Note(generatedIdByDatabase, patientId, noteCreatedDate, noteUpdatedDate, noteContent);
-        Note expectedNote = Optional.of(mockNoteInDatabase).get();
-        String noteId = generatedIdByDatabase;
+        List<Note> result = serviceUnderTest.readAllNotesByPatientId(patientId);
 
-        when(noteRepository.findById(any(String.class))).thenReturn(Optional.of(mockNoteInDatabase));
-
-        // WHEN
-        Note noteResult = noteServiceUnderTest.readNoteById(noteId);
-
-        // THEN
-        assertThat(noteResult).isNotNull();
-        assertThat(noteResult).usingRecursiveComparison().isEqualTo(expectedNote);
-        verify(noteRepository).findById(any(String.class));
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).as("Notes found from database")
+                .isNotNull()
+                .hasSize(expectedNotesList.size())
+                .contains(note2, note3)
+                .doesNotContain(note1));
+        verify(noteRepository).findAllByPatientIdOrderByDateOfCreationDesc(patientId);
     }
 
+    // === TEST READ ONE BY ID OPERATION ======================================
+    @Test
+    void readNoteById_shouldReturnTheNoteWithTheGivenId_whenGivenIdIsPresentInDatabase() {
+        String noteId = "generatedId1";
+        when(noteRepository.findById(anyString())).thenReturn(Optional.of(note1));
+
+        Note result = serviceUnderTest.readNoteById(noteId);
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).as("Note found").isNotNull();
+            softly.assertThat(result.getPatientId()).as("Note found patientId").isEqualTo(note1.getPatientId());
+            softly.assertThat(result.getContent()).as("Note found content").isEqualTo(note1.getContent());
+        });
+        verify(noteRepository).findById(noteId);
+    }
 
     @Test
-    public void readNoteById_shouldThrowException_whenGivenIdIsUnknown() {
-        // GIVEN
-        String noteId = "UnknownId";
+    void readNoteById_shouldThrowAnException_whenGivenIdIsNotPresentInDatabase() {
+        String unknownNoteId = "unknown123";
+        when(noteRepository.findById(anyString())).thenReturn(Optional.empty());
 
-        when(noteRepository.findById(any(String.class))).thenReturn(Optional.empty());
+        Throwable result = catchThrowable(() -> serviceUnderTest.readNoteById(unknownNoteId));
 
-        // WHEN
-        Throwable noteResult = catchThrowable(
-                () -> noteServiceUnderTest.readNoteById(noteId)
-        );
-
-        // THEN
-        assertThat(noteResult)
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).as("Thrown exception")
                 .isInstanceOf(DataNotFoundException.class)
-                .hasMessageContaining("not found");
-        verify(noteRepository).findById("UnknownId");
+                .hasMessageContaining("Note not found"));
+        verify(noteRepository).findById(unknownNoteId);
     }
 
+    // === TEST UPDATE NOTE OPERATION =========================================
+    @Test
+    void updateNote_shouldReturnUpdatedNote_whenGivenIdIsPresentInDatabase() {
+        LocalDateTime modificationDateUpdated = LocalDateTime.of(2022, 12, 31, 18, 20);
+        Note noteToUpdate = new Note("generatedId1", 1, creationDate, modificationDateUpdated, "Recommendation updated");
+        Note noteUpdated = new Note("generatedId1", 1, creationDate, modificationDateUpdated, "Recommendation updated");
+        String noteId = note1.getId();
+        when(noteRepository.findById(anyString())).thenReturn(Optional.of(note1));
+        when(noteRepository.save(any(Note.class))).thenReturn(noteUpdated);
+
+        Note result = serviceUnderTest.updateNote(noteId, noteToUpdate);
+
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).as("Patient updated")
+                .isNotNull()
+                .isEqualTo(noteUpdated));
+        verify(noteRepository).findById(noteId);
+        verify(noteRepository).save(noteToUpdate);
+    }
 
     @Test
-    public void createNote_shouldInsertNoteInDatabase() {
-        // GIVEN
-        String generatedIdByMongoDB = "MongoDBIdForCreateNoteTest";
-        Integer patientId = 1;
-        LocalDateTime noteCreatedDate = LocalDateTime.of(2022, 12, 31, 8, 20);
-        LocalDateTime noteUpdatedDate = LocalDateTime.of(2022, 12, 31, 8, 20);
-        String noteContent = "Content of the note";
+    void updateNote_shouldThrowAnException_whenGivenIdIsNotPresentInDatabase() {
+        String unknownNoteId = "000";
+        when(noteRepository.findById(anyString())).thenReturn(Optional.empty());
 
-        Note mockNoteInDatabase = new Note(generatedIdByMongoDB, patientId, noteCreatedDate, noteUpdatedDate, noteContent);
-        Note noteToAdd = new Note(patientId, noteCreatedDate, noteUpdatedDate, noteContent);
+        Throwable result = catchThrowable(() -> serviceUnderTest.updateNote(unknownNoteId, note1));
 
-        when(noteRepository.insert(any(Note.class))).thenReturn(mockNoteInDatabase);
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).as("Thrown exception")
+                .isInstanceOf(DataNotFoundException.class)
+                .hasMessageContaining("Note not found"));
+        verify(noteRepository).findById(unknownNoteId);
+        verify(noteRepository, times(0)).save(note1);
+    }
 
-        // WHEN
-        Note createdNote = noteServiceUnderTest.createNote(noteToAdd);
+    // === TEST DELETE NOTE OPERATION =========================================
+    @Test
+    void deleteNote_shouldDeleteNote_whenGivenIdIsPresentInDatabase() {
+        String noteId = note1.getId();
+        when(noteRepository.existsById(anyString())).thenReturn(true);
 
-        // THEN
-        assertThat(createdNote).isNotNull();
-        assertThat(createdNote.getId()).isNotNull();
-        assertThat(createdNote).usingRecursiveComparison().isEqualTo(mockNoteInDatabase);
-        verify(noteRepository).insert(noteToAdd);
+        serviceUnderTest.deleteNote(noteId);
+
+        verify(noteRepository).existsById(noteId);
+        verify(noteRepository).deleteById(noteId);
+    }
+
+    @Test
+    void deleteNote_shouldThrowAnException_whenGivenIdIsNotPresentInDatabase() {
+        String unknownNoteId = "unknownId";
+        when(noteRepository.existsById(anyString())).thenReturn(false);
+
+        Throwable result = catchThrowable(() -> serviceUnderTest.deleteNote(unknownNoteId));
+
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).as("Thrown exception")
+                .isInstanceOf(DataNotFoundException.class)
+                .hasMessageContaining("Note not found"));
+        verify(noteRepository).existsById(unknownNoteId);
+        verify(noteRepository, times(0)).deleteById(unknownNoteId);
+    }
+
+    // === TEST DELETE NOTES BY PATIENT ID OPERATION ==========================
+    @Test
+    void deleteNotesByPatientId_shouldDeleteNotesWithTheSamePatientId() {
+        Integer patientId = 2;
+
+        serviceUnderTest.deleteNotesByPatientId(patientId);
+
+        verify(noteRepository).deleteAllByPatientId(patientId);
     }
 }
